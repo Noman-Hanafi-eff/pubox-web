@@ -1,0 +1,31 @@
+.modal {
+    padding-right: 0 !important;
+
+    &.in {
+        opacity: 1;
+
+        .modal-dialog {
+            transform: none;
+        }
+    }
+}
+
+.modal-dialog {
+    margin: 15px auto;
+}
+
+.modal-content {
+    padding: 0;
+    border: none;
+    border-radius: $radius-default;
+}
+
+.modal-body {
+    padding: 0;
+}
+
+.modal-backdrop {
+    &.in {
+        opacity: 0.5;
+    }
+}

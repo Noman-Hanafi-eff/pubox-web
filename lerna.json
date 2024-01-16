@@ -1,0 +1,5 @@
+{
+    "version": "6.6.2",
+    "npmClient": "yarn",
+    "packages": ["Modules/*", "Themes/*"]
+}

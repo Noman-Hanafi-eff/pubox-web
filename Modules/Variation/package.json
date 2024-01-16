@@ -1,0 +1,8 @@
+{
+    "name": "variation-module",
+    "private": true,
+    "dependencies": {
+        "@melloware/coloris": "^0.21.1",
+        "vuedraggable": "^2.24.3"
+    }
+}

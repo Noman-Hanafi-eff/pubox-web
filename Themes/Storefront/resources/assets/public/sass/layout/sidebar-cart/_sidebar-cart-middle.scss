@@ -1,0 +1,31 @@
+.sidebar-cart-middle {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 60px;
+    bottom: 145px;
+    padding: 0 25px;
+
+    &.empty {
+        bottom: 0;
+        overflow: visible;
+    }
+}
+
+.sidebar-cart-items-wrap {
+    padding: 5px 0;
+    background: $color-white;
+}
+
+.sidebar-cart-item {
+    padding: 25px 0 20px;
+    border-bottom: 1px solid $color-white-lite;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .remove-cart-item {
+        top: 16px;
+    }
+}

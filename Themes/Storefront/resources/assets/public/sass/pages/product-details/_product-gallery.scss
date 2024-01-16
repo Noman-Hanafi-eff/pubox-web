@@ -1,0 +1,193 @@
+.product-gallery {
+    width: 600px;
+    min-width: 600px;
+    padding: 0 15px;
+}
+
+.product-gallery-preview-wrap {
+    margin-bottom: 15px;
+    border: 1px solid $color-gray-lite;
+    border-radius: $radius-default;
+
+    &.visible-variation-image {
+        .product-gallery-preview {
+            opacity: 0;
+            visibility: hidden;
+        }
+    }
+
+    .variation-image {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        max-height: 100%;
+        max-width: 100%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+    }
+}
+
+.product-gallery-preview {
+    &:not(.slick-initialized) {
+        .gallery-preview-slide {
+            &:not(:first-child) {
+                display: none;
+            }
+        }
+    }
+
+    .gallery-preview-item {
+        position: relative;
+        display: flex;
+        width: 100%;
+        padding-bottom: 85%;
+        background: $color-white;
+        cursor: crosshair;
+
+        > img {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            max-height: 100%;
+            max-width: 100%;
+            transform: translate(-50%, -50%);
+        }
+
+        .image-placeholder {
+            width: 130px;
+        }
+    }
+
+    .gallery-view-icon {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        height: 30px;
+        width: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: $color-white;
+        background: $color-default-transparent;
+        background: var(--color-primary-transparent);
+        border-radius: $radius-full;
+        z-index: 1;
+        cursor: pointer;
+        transform: rotateY(180deg);
+
+        > i {
+            font-size: 16px;
+        }
+
+        &:hover {
+            color: $color-gray-lite;
+            background: $color-default;
+            background: var(--color-primary);
+        }
+    }
+}
+
+.product-gallery-thumbnail {
+    .slick-list {
+        margin: 0 -6px;
+    }
+
+    .slick-current {
+        .gallery-thumbnail-item {
+            border-color: $color-default;
+            border-color: var(--color-primary);
+        }
+    }
+
+    .slick-arrow {
+        height: 22px;
+        width: 22px;
+        background: $color-default-transparent;
+        background: var(--color-primary-transparent);
+        border-radius: $radius-full;
+        transition: $transition-default;
+
+        &:hover {
+            background: $color-default;
+            background: var(--color-primary);
+        }
+
+        &:before {
+            color: $color-white;
+
+            &:hover {
+                color: $color-white;
+            }
+        }
+    }
+
+    .slick-prev,
+    .slick-next {
+        &:before {
+            font-size: 10px;
+        }
+    }
+
+    .slick-prev {
+        left: 10px;
+        right: auto;
+    }
+
+    .slick-next {
+        right: 10px;
+        left: auto;
+    }
+
+    .gallery-thumbnail-item {
+        position: relative;
+        margin: 0 6px;
+        padding-bottom: 75%;
+        border: 1px solid $color-gray-lite;
+        border-radius: $radius-default;
+        overflow: hidden;
+        transition: $transition-default;
+        cursor: pointer;
+
+        img {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            max-height: 100%;
+            max-width: 100%;
+            transform: translate(-50%, -50%);
+        }
+
+        .image-placeholder {
+            max-height: 60%;
+            max-width: 60%;
+        }
+    }
+}
+
+@media screen and (max-width: 1600px) {
+    .product-gallery {
+        width: 500px;
+        min-width: 500px;
+    }
+}
+
+@media screen and (max-width: $xl) {
+    .product-gallery {
+        width: 430px;
+        min-width: 430px;
+    }
+}
+
+@media screen and (max-width: $lg) {
+    .product-gallery {
+        width: 578px;
+        min-width: 578px;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .product-gallery {
+        width: 100%;
+        min-width: 100%;
+    }
+}

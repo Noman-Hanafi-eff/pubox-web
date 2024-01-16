@@ -1,0 +1,53 @@
+.alert {
+    font-size: 16px;
+    position: fixed;
+    right: 15px;
+    bottom: 15px;
+    display: flex;
+    margin: 0 0 0 15px;
+    padding: 20px 64px 20px 28px;
+    align-items: center;
+    border: none;
+    border-radius: $radius-default;
+
+    .close {
+        font-size: 16px;
+        top: 50%;
+        right: 17px;
+        padding: 10px;
+        transform: translateY(-50%);
+        transition: $transition-default;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        > i {
+            color: $color-gray;
+        }
+    }
+}
+
+.alert-success {
+    color: $color-green;
+    background: #e8f7f3;
+    border-color: $color-green;
+}
+
+.alert-danger {
+    color: $color-red;
+    background: #fbebea;
+    border-color: $color-red;
+}
+
+.alert-info {
+    color: $color-info;
+    background: #e2ecf7;
+    border-color: $color-info;
+}
+
+.alert-warning {
+    color: $color-yellow;
+    background: #fef5ea;
+    border-color: $color-yellow;
+}
