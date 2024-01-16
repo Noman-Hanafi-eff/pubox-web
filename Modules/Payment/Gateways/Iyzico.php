@@ -2,16 +2,36 @@
 
 namespace Modules\Payment\Gateways;
 
+use Exception;
+use Iyzipay\Options;
+use Iyzipay\Model\Buyer;
+use Iyzipay\Model\Locale;
+use Iyzipay\Model\Address;
 use Illuminate\Http\Request;
+use Iyzipay\Model\BasketItem;
+use Iyzipay\Model\PaymentGroup;
 use Modules\Order\Entities\Order;
+use Iyzipay\Model\BasketItemType;
 use Modules\Payment\GatewayInterface;
+use Iyzipay\Model\CheckoutFormInitialize;
 use Modules\Payment\Responses\IyzicoResponse;
+use Iyzipay\Request\CreateCheckoutFormInitializeRequest;
 
 class Iyzico implements GatewayInterface
 {
-
+    public const CURRENCIES = [
+        "TRY",
+        "EUR",
+        "USD",
+        "GBP",
+        "IRR",
+        "NOK",
+        "RUB",
+        "CHF",
+    ];
     public $label;
     public $description;
+    public Order $order;
 
 
     public function __construct()
@@ -21,88 +41,23 @@ class Iyzico implements GatewayInterface
     }
 
 
+    /**
+     * @throws Exception
+     */
     public function purchase(Order $order, Request $request)
     {
+        dd($order);
+        if (!in_array(currency(), setting('iyzico_supported_currencies') ?? self::CURRENCIES)) {
+            throw new Exception(trans('payment::messages.currency_not_supported'));
+        }
+
+        $this->order = $order;
         $reference = 'ref' . time();
-        # create request class
-        $apiRequest = new \Iyzipay\Request\CreateCheckoutFormInitializeRequest();
-        $apiRequest->setLocale(\Iyzipay\Model\Locale::TR);
-        $apiRequest->setConversationId("123456789");
-        $apiRequest->setPrice("1");
-        $apiRequest->setPaidPrice("1.2");
-        $apiRequest->setCurrency(\Iyzipay\Model\Currency::TL);
-        $apiRequest->setBasketId("B67832");
-        $apiRequest->setPaymentGroup(\Iyzipay\Model\PaymentGroup::PRODUCT);
-        $apiRequest->setCallbackUrl($this->getRedirectUrl($order, $reference));
-        $apiRequest->setEnabledInstallments([2, 3, 6, 9]);
 
-        $buyer = new \Iyzipay\Model\Buyer();
-        $buyer->setId("BY789");
-        $buyer->setName("John");
-        $buyer->setSurname("Doe");
-        $buyer->setGsmNumber("+905350000000");
-        $buyer->setEmail("email@email.com");
-        $buyer->setIdentityNumber("74300864791");
-        $buyer->setLastLoginDate("2015-10-05 12:43:35");
-        $buyer->setRegistrationDate("2013-04-21 15:12:09");
-        $buyer->setRegistrationAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
-        $buyer->setIp("85.34.78.112");
-        $buyer->setCity("Istanbul");
-        $buyer->setCountry("Turkey");
-        $buyer->setZipCode("34732");
-        $apiRequest->setBuyer($buyer);
+        $apiOptions = $this->prepareApiOptions();
+        $apiRequest = $this->prepareApiRequest();
 
-        $shippingAddress = new \Iyzipay\Model\Address();
-        $shippingAddress->setContactName("Jane Doe");
-        $shippingAddress->setCity("Istanbul");
-        $shippingAddress->setCountry("Turkey");
-        $shippingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
-        $shippingAddress->setZipCode("34742");
-        $apiRequest->setShippingAddress($shippingAddress);
-
-        $billingAddress = new \Iyzipay\Model\Address();
-        $billingAddress->setContactName("Jane Doe");
-        $billingAddress->setCity("Istanbul");
-        $billingAddress->setCountry("Turkey");
-        $billingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
-        $billingAddress->setZipCode("34742");
-        $apiRequest->setBillingAddress($billingAddress);
-
-        $basketItems = [];
-        $firstBasketItem = new \Iyzipay\Model\BasketItem();
-        $firstBasketItem->setId("BI101");
-        $firstBasketItem->setName("Binocular");
-        $firstBasketItem->setCategory1("Collectibles");
-        $firstBasketItem->setCategory2("Accessories");
-        $firstBasketItem->setItemType(\Iyzipay\Model\BasketItemType::PHYSICAL);
-        $firstBasketItem->setPrice("0.3");
-        $basketItems[0] = $firstBasketItem;
-
-        $secondBasketItem = new \Iyzipay\Model\BasketItem();
-        $secondBasketItem->setId("BI102");
-        $secondBasketItem->setName("Game code");
-        $secondBasketItem->setCategory1("Game");
-        $secondBasketItem->setCategory2("Online Game Items");
-        $secondBasketItem->setItemType(\Iyzipay\Model\BasketItemType::VIRTUAL);
-        $secondBasketItem->setPrice("0.5");
-        $basketItems[1] = $secondBasketItem;
-
-        $thirdBasketItem = new \Iyzipay\Model\BasketItem();
-        $thirdBasketItem->setId("BI103");
-        $thirdBasketItem->setName("Usb");
-        $thirdBasketItem->setCategory1("Electronics");
-        $thirdBasketItem->setCategory2("Usb / Cable");
-        $thirdBasketItem->setItemType(\Iyzipay\Model\BasketItemType::PHYSICAL);
-        $thirdBasketItem->setPrice("0.2");
-        $basketItems[2] = $thirdBasketItem;
-        $apiRequest->setBasketItems($basketItems);
-
-        $options = new \Iyzipay\Options();
-        $options->setApiKey(setting('iyzico_api_key'));
-        $options->setSecretKey(setting('iyzico_api_secret'));
-        $options->setBaseUrl('https://sandbox-api.iyzipay.com');
-        # make request
-        $response = \Iyzipay\Model\CheckoutFormInitialize::create($apiRequest, $options);
+        $response = CheckoutFormInitialize::create($apiRequest, $apiOptions);
 
         return new IyzicoResponse($order, $response);
     }
@@ -114,8 +69,122 @@ class Iyzico implements GatewayInterface
     }
 
 
+    private function prepareApiOptions(): Options
+    {
+        $options = new Options();
+
+        $options->setApiKey(setting('iyzico_api_key'));
+        $options->setSecretKey(setting('iyzico_api_secret'));
+        $options->setBaseUrl(setting('iyzico_test_mode') ? 'https://sandbox-api.iyzipay.com' : 'https://api.iyzipay.com');
+
+        return $options;
+    }
+
+
+    private function prepareApiRequest(): CreateCheckoutFormInitializeRequest
+    {
+        $apiRequest = new CreateCheckoutFormInitializeRequest();
+
+        $buyer = $this->prepareBuyer();
+        $shippingAddress = $this->prepareShippingAddress();
+        $billingAddress = $this->prepareBillingAddress();
+        $basketItems = $this->prepareBasketItems();
+
+        $apiRequest->setLocale(locale() === 'tr' ? Locale::TR : Locale::EN);
+        $apiRequest->setConversationId("123456789");
+        $apiRequest->setPrice("1");
+        $apiRequest->setPaidPrice("1.2");
+        $apiRequest->setCurrency(setting('iyzico_supported_currency') ?? currency());
+        $apiRequest->setBasketId($this->order->id);
+        $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
+        $apiRequest->setCallbackUrl($this->getRedirectUrl($this->order, "ref"));
+        $apiRequest->setBuyer($buyer);
+        $apiRequest->setShippingAddress($shippingAddress);
+        $apiRequest->setBillingAddress($billingAddress);
+        $apiRequest->setBasketItems($basketItems);
+
+
+        return $apiRequest;
+    }
+
+
     private function getRedirectUrl($order, $reference)
     {
-        return route('checkout.complete.store', ['orderId' => $order->id, 'paymentMethod' => 'iyzico', 'reference' => $reference]);
+        return route('checkout.complete.store', [
+            'orderId' => $order->id,
+            'paymentMethod' => 'iyzico',
+            'reference' => $reference,
+        ]);
+    }
+
+
+    private function prepareBuyer()
+    {
+        $buyer = new Buyer();
+
+        $buyer->setId("BY789");
+        $buyer->setName("John");
+        $buyer->setSurname("Doe");
+        $buyer->setGsmNumber("+905350000000");
+        $buyer->setEmail("email@email.com");
+        $buyer->setIdentityNumber("74300864791");
+        $buyer->setCity("Istanbul");
+        $buyer->setCountry("Turkey");
+        $buyer->setZipCode("34732");
+
+        return $buyer;
+    }
+
+
+    private function prepareBillingAddress()
+    {
+        $billingAddress = new Address();
+
+        $billingAddress->setContactName("Jane Doe");
+        $billingAddress->setCity("Istanbul");
+        $billingAddress->setCountry("Turkey");
+        $billingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
+        $billingAddress->setZipCode("34742");
+
+        return $billingAddress;
+    }
+
+
+    private function prepareShippingAddress()
+    {
+        $shippingAddress = new Address();
+
+        $shippingAddress->setContactName("Jane Doe");
+        $shippingAddress->setCity("Istanbul");
+        $shippingAddress->setCountry("Turkey");
+        $shippingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
+        $shippingAddress->setZipCode("34742");
+
+        return $shippingAddress;
+    }
+
+
+    private function prepareBasketItems()
+    {
+        $basketItems = [];
+
+        foreach ($this->order->products as $orderProduct) {
+            $basketItems[] = $this->prepareBasketItem($orderProduct);
+        }
+
+        return $basketItems;
+    }
+
+
+    private function prepareBasketItem($orderProduct)
+    {
+        $basketItem = new BasketItem();
+
+        $basketItem->setId($orderProduct->id);
+        $basketItem->setName($orderProduct->product->name);
+        $basketItem->setItemType($orderProduct->product->is_virtual ? BasketItemType::VIRTUAL : BasketItemType::PHYSICAL);
+        $basketItem->setPrice((float)$orderProduct->unit_price->convertToCurrentCurrency()->amount());
+
+        return $basketItem;
     }
 }

@@ -6,6 +6,7 @@
         {{ Form::checkbox('iyzico_test_mode', trans('setting::attributes.iyzico_test_mode'), trans('setting::settings.form.use_sandbox_for_test_payments'), $errors, $settings) }}
 
         <div class="{{ old('iyzico_enabled', array_get($settings, 'iyzico_enabled')) ? '' : 'hide' }}" id="iyzico-fields">
+            {{ Form::select('iyzico_supported_currencies', trans('setting::attributes.supported_currencies'), $errors, $currencies, $settings, ['class' => 'selectize prevent-creation', 'required' => true, 'multiple' => true]) }}
             {{ Form::text('iyzico_api_key', trans('setting::attributes.iyzico_api_key'), $errors, $settings, ['required' => true]) }}
             {{ Form::password('iyzico_api_secret', trans('setting::attributes.iyzico_api_secret'), $errors, $settings, ['required' => true]) }}
         </div>

@@ -9,6 +9,7 @@ use Modules\Support\Country;
 use Modules\Support\TimeZone;
 use Modules\Currency\Currency;
 use Modules\User\Entities\Role;
+use Modules\Payment\Gateways\Iyzico;
 use Modules\Payment\Gateways\MercadoPago;
 
 class SettingTabs extends Tabs
@@ -372,9 +373,18 @@ class SettingTabs extends Tabs
         return tap(new Tab('iyzico', trans('setting::settings.tabs.iyzico')), function (Tab $tab) {
             $tab->weight(69);
 
-            $tab->fields(['iyzico_enabled', 'iyzico_label', 'iyzico_description', 'iyzico_test_mode', 'iyzico_api_key', 'iyzico_api_secret']);
+            $currencies = array_combine(
+                Iyzico::CURRENCIES,
+                array_map(function ($currency) {
+                    return Currency::name($currency);
+                }, Iyzico::CURRENCIES),
+            );
 
-            $tab->view('setting::admin.settings.tabs.iyzico');
+            $tab->fields(['iyzico_enabled', 'iyzico_label', 'iyzico_description', 'iyzico_test_mode', 'iyzico_supported_currencies', 'iyzico_api_key', 'iyzico_api_secret']);
+
+            $tab->view('setting::admin.settings.tabs.iyzico', [
+                'currencies' => $currencies,
+            ]);
         });
     }
 

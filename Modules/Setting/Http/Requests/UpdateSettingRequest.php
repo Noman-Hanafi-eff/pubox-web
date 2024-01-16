@@ -155,6 +155,7 @@ class UpdateSettingRequest extends Request
             'translatable.iyzico_label' => 'required_if:iyzico_enabled,1',
             'translatable.iyzico_description' => 'required_if:iyzico_enabled,1',
             'iyzico_test_mode' => 'required|boolean',
+            'iyzico_supported_currencies' => 'required_if:iyzico_enabled,1',
             'iyzico_api_key' => 'required_if:iyzico_enabled,1',
             'iyzico_api_secret' => 'required_if:iyzico_enabled,1',
 
