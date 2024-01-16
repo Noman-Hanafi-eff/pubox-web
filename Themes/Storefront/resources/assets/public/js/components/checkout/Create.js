@@ -436,6 +436,8 @@ export default {
                         this.confirmFlutterWavePayment(data);
                     } else if (this.form.payment_method === "mercadopago") {
                         this.confirmMercadoPagoPayment(data);
+                    } else if (this.form.payment_method === "iyzico") {
+                        this.confirmIyzicoPayment(data);
                     } else {
                         this.confirmOrder(
                             data.orderId,
@@ -753,6 +755,20 @@ export default {
                 },
                 autoOpen: true,
             });
+        },
+
+        confirmIyzicoPayment({ checkoutFormContent }) {
+            this.placingOrder = false;
+
+            if (checkoutFormContent === null) {
+                this.$notify("Something went wrong. Please try again.");
+
+                return;
+            }
+
+            $("body").append(checkoutFormContent);
+
+            // todo:: send cancel order request
         },
     },
 };
