@@ -8,7 +8,7 @@ use Modules\Payment\HasTransactionReference;
 
 class IyzicoResponse extends GatewayResponse implements HasTransactionReference
 {
-    private $order;
+    private Order $order;
     private array|object $clientResponse;
 
 
@@ -31,10 +31,10 @@ class IyzicoResponse extends GatewayResponse implements HasTransactionReference
     }
 
 
-    public function toArray()
+    public function toArray(): array
     {
         return [
-            'orderId' => $this->order->id,
+            'orderId' => $this->getOrderId(),
             'checkoutFormContent' => $this->clientResponse->getCheckoutFormContent(),
         ];
     }

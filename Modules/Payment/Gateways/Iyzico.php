@@ -19,6 +19,8 @@ use Iyzipay\Request\CreateCheckoutFormInitializeRequest;
 
 class Iyzico implements GatewayInterface
 {
+    public $label;
+    public $description;
     public const CURRENCIES = [
         "TRY",
         "EUR",
@@ -29,8 +31,6 @@ class Iyzico implements GatewayInterface
         "RUB",
         "CHF",
     ];
-    public $label;
-    public $description;
     public Order $order;
 
 
@@ -46,18 +46,26 @@ class Iyzico implements GatewayInterface
      */
     public function purchase(Order $order, Request $request)
     {
-        if (!in_array(currency(), setting('iyzico_supported_currencies') ?? self::CURRENCIES)) {
-            throw new Exception(trans('payment::messages.currency_not_supported'));
-        }
+        $this->checkIfCurrentCurrencyIsSupported();
 
         $this->order = $order;
-
         $apiOptions = $this->prepareApiOptions();
         $apiRequest = $this->prepareApiRequest();
 
         $response = CheckoutFormInitialize::create($apiRequest, $apiOptions);
 
         return new IyzicoResponse($order, $response);
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    private function checkIfCurrentCurrencyIsSupported(): void
+    {
+        if (!in_array(currency(), setting('iyzico_supported_currencies') ?? self::CURRENCIES)) {
+            throw new Exception(trans('payment::messages.currency_not_supported'));
+        }
     }
 
 
@@ -73,7 +81,11 @@ class Iyzico implements GatewayInterface
 
         $options->setApiKey(setting('iyzico_api_key'));
         $options->setSecretKey(setting('iyzico_api_secret'));
-        $options->setBaseUrl(setting('iyzico_test_mode') ? 'https://sandbox-api.iyzipay.com' : 'https://api.iyzipay.com');
+        $options->setBaseUrl(
+            setting('iyzico_test_mode')
+                ? 'https://sandbox-api.iyzipay.com'
+                : 'https://api.iyzipay.com'
+        );
 
         return $options;
     }
@@ -88,14 +100,20 @@ class Iyzico implements GatewayInterface
         $billingAddress = $this->prepareBillingAddress();
         $basketItems = $this->prepareBasketItems();
 
-        $apiRequest->setLocale(locale() === 'tr' ? Locale::TR : Locale::EN);
+        $apiRequest->setLocale(
+            locale() === 'tr'
+                ? Locale::TR
+                : Locale::EN
+        );
         $apiRequest->setConversationId(time());
         $apiRequest->setPrice($this->order->sub_total);
         $apiRequest->setPaidPrice($this->order->total);
-        $apiRequest->setCurrency(setting('iyzico_supported_currency') ?? currency());
+        $apiRequest->setCurrency(currency());
         $apiRequest->setBasketId($this->order->id);
         $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
-        $apiRequest->setCallbackUrl($this->getRedirectUrl($this->order, 'ref' . time()));
+        $apiRequest->setCallbackUrl(
+            $this->getRedirectUrl($this->order, 'ref' . time())
+        );
         $apiRequest->setBuyer($buyer);
         $apiRequest->setShippingAddress($shippingAddress);
         $apiRequest->setBillingAddress($billingAddress);
@@ -105,7 +123,7 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function getRedirectUrl($order, $reference)
+    private function getRedirectUrl($order, $reference): string
     {
         return route('checkout.complete.store', [
             'orderId' => $order->id,
@@ -115,7 +133,7 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function prepareBuyer()
+    private function prepareBuyer(): Buyer
     {
         $buyer = new Buyer();
 
@@ -134,7 +152,7 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function prepareBillingAddress()
+    private function prepareBillingAddress(): Address
     {
         $billingAddress = new Address();
 
@@ -148,7 +166,7 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function prepareShippingAddress()
+    private function prepareShippingAddress(): Address
     {
         $shippingAddress = new Address();
 
@@ -162,7 +180,7 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function prepareBasketItems()
+    private function prepareBasketItems(): array
     {
         $basketItems = [];
 
@@ -174,15 +192,28 @@ class Iyzico implements GatewayInterface
     }
 
 
-    private function prepareBasketItem($orderProduct)
+    private function prepareBasketItem($orderProduct): BasketItem
     {
         $basketItem = new BasketItem();
 
         $basketItem->setId($orderProduct->product->id);
         $basketItem->setName($orderProduct->product->name);
-        $basketItem->setCategory1($orderProduct->product->categories->count() ? implode(',', $orderProduct->product->categories) : 'Uncategorized');
-        $basketItem->setItemType($orderProduct->product->is_virtual ? BasketItemType::VIRTUAL : BasketItemType::PHYSICAL);
-        $basketItem->setPrice((float)$orderProduct->line_total->convertToCurrentCurrency()->amount());
+        $basketItem->setCategory1(
+            $orderProduct->product->categories->count()
+                ? implode(',', $orderProduct->product->categories)
+                : 'Uncategorized'
+        );
+        $basketItem->setItemType(
+            $orderProduct->product->is_virtual
+                ? BasketItemType::VIRTUAL
+                : BasketItemType::PHYSICAL
+        );
+        $basketItem->setPrice(
+            (float)$orderProduct
+                ->line_total
+                ->convertToCurrentCurrency()
+                ->amount()
+        );
 
         return $basketItem;
     }
