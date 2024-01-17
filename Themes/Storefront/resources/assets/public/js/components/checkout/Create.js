@@ -769,13 +769,7 @@ export default {
                 return;
             }
 
-            if (typeof iyziInit === "undefined") {
-                $("body").append(checkoutFormContent);
-
-                return;
-            }
-
-            iyziInit.createTag();
+            $("body").append(checkoutFormContent);
         },
 
         deleteOrderOnCloseIyzicoPopup(orderId) {
@@ -783,6 +777,8 @@ export default {
                 .off("click", ".css-48y2rb-Close-Close")
                 .on("click", ".css-48y2rb-Close-Close", () => {
                     this.deleteOrder(orderId);
+
+                    iyziInit = undefined;
                 });
         },
     },
