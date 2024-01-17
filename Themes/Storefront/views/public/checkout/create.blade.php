@@ -2,6 +2,12 @@
 
 @section('title', trans('storefront::checkout.checkout'))
 
+@push('globals')
+    <script>
+        FleetCart.langs['core::messages.something_went_wrong'] = '{{ trans('core::messages.something_went_wrong') }}';
+    </script>
+@endpush
+
 @section('content')
     <checkout-create
         customer-email="{{ auth()->user()->email ?? null }}"

@@ -2,9 +2,9 @@
 
 namespace Modules\Payment\Responses;
 
+use Iyzipay\Model\CheckoutFormInitialize;
 use Modules\Order\Entities\Order;
 use Modules\Payment\GatewayResponse;
-use Iyzipay\Model\CheckoutFormInitialize;
 use Modules\Payment\HasTransactionReference;
 
 class IyzicoResponse extends GatewayResponse implements HasTransactionReference
@@ -12,13 +12,10 @@ class IyzicoResponse extends GatewayResponse implements HasTransactionReference
     private $order;
     private CheckoutFormInitialize $clientResponse;
 
-
-    public function __construct(Order $order, CheckoutFormInitialize $clientResponse)
-    {
+    public function __construct(Order $order, CheckoutFormInitialize $clientResponse){
         $this->order = $order;
         $this->clientResponse = $clientResponse;
     }
-
 
     public function getOrderId()
     {
@@ -28,13 +25,14 @@ class IyzicoResponse extends GatewayResponse implements HasTransactionReference
 
     public function getTransactionReference()
     {
-    }
 
+    }
 
     public function toArray()
     {
         return [
-            'checkoutFormContent' => $this->clientResponse->getCheckoutFormContent(),
+            'orderId' => $this->order->id,
+            "checkoutFormContent" => $this->clientResponse->getCheckoutFormContent(),
         ];
     }
 }

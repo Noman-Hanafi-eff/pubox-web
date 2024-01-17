@@ -757,18 +757,33 @@ export default {
             });
         },
 
-        confirmIyzicoPayment({ checkoutFormContent }) {
+        confirmIyzicoPayment({ orderId, checkoutFormContent }) {
             this.placingOrder = false;
+            this.deleteOrderOnCloseIyzicoPopup(orderId);
 
             if (checkoutFormContent === null) {
-                this.$notify("Something went wrong. Please try again.");
+                this.$notify(
+                    this.$trans("core::messages.something_went_wrong")
+                );
 
                 return;
             }
 
-            $("body").append(checkoutFormContent);
+            if (typeof iyziInit === "undefined") {
+                $("body").append(checkoutFormContent);
 
-            // todo:: send cancel order request
+                return;
+            }
+
+            iyziInit.createTag();
+        },
+
+        deleteOrderOnCloseIyzicoPopup(orderId) {
+            $(document)
+                .off("click", ".css-48y2rb-Close-Close")
+                .on("click", ".css-48y2rb-Close-Close", () => {
+                    this.deleteOrder(orderId);
+                });
         },
     },
 };
