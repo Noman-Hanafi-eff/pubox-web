@@ -111,6 +111,7 @@ class Iyzico implements GatewayInterface
         $apiRequest->setCurrency(currency());
         $apiRequest->setBasketId($this->order->id);
         $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
+        $apiRequest->setEnabledInstallments(['1']);
         $apiRequest->setCallbackUrl(
             $this->getRedirectUrl($this->order, 'ref' . time())
         );
