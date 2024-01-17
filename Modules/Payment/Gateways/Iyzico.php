@@ -51,7 +51,6 @@ class Iyzico implements GatewayInterface
         }
 
         $this->order = $order;
-        $reference = 'ref' . time();
 
         $apiOptions = $this->prepareApiOptions();
         $apiRequest = $this->prepareApiRequest();
@@ -64,7 +63,7 @@ class Iyzico implements GatewayInterface
 
     public function complete(Order $order)
     {
-        // TODO: Implement complete() method.
+        return new IyzicoResponse($order, request());
     }
 
 
@@ -96,7 +95,7 @@ class Iyzico implements GatewayInterface
         $apiRequest->setCurrency(setting('iyzico_supported_currency') ?? currency());
         $apiRequest->setBasketId($this->order->id);
         $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
-        $apiRequest->setCallbackUrl($this->getRedirectUrl($this->order, "ref"));
+        $apiRequest->setCallbackUrl($this->getRedirectUrl($this->order, 'ref' . time()));
         $apiRequest->setBuyer($buyer);
         $apiRequest->setShippingAddress($shippingAddress);
         $apiRequest->setBillingAddress($billingAddress);
@@ -179,11 +178,11 @@ class Iyzico implements GatewayInterface
     {
         $basketItem = new BasketItem();
 
-        $basketItem->setId($orderProduct->id);
+        $basketItem->setId($orderProduct->product->id);
         $basketItem->setName($orderProduct->product->name);
         $basketItem->setCategory1($orderProduct->product->categories->count() ? implode(',', $orderProduct->product->categories) : 'Uncategorized');
         $basketItem->setItemType($orderProduct->product->is_virtual ? BasketItemType::VIRTUAL : BasketItemType::PHYSICAL);
-        $basketItem->setPrice((float)$orderProduct->unit_price->convertToCurrentCurrency()->amount());
+        $basketItem->setPrice((float)$orderProduct->line_total->convertToCurrentCurrency()->amount());
 
         return $basketItem;
     }

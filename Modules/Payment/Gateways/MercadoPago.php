@@ -114,6 +114,7 @@ class MercadoPago implements GatewayInterface
     public function prepareProductItem($orderProduct)
     {
         $item = new MercadoPagoItem();
+
         $item->title = $orderProduct->product->name;
         $item->quantity = $orderProduct->qty;
         $item->currency_id = currency();
