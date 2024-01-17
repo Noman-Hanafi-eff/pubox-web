@@ -46,7 +46,6 @@ class Iyzico implements GatewayInterface
      */
     public function purchase(Order $order, Request $request)
     {
-        dd($order);
         if (!in_array(currency(), setting('iyzico_supported_currencies') ?? self::CURRENCIES)) {
             throw new Exception(trans('payment::messages.currency_not_supported'));
         }
@@ -91,9 +90,9 @@ class Iyzico implements GatewayInterface
         $basketItems = $this->prepareBasketItems();
 
         $apiRequest->setLocale(locale() === 'tr' ? Locale::TR : Locale::EN);
-        $apiRequest->setConversationId("123456789");
-        $apiRequest->setPrice("1");
-        $apiRequest->setPaidPrice("1.2");
+        $apiRequest->setConversationId(time());
+        $apiRequest->setPrice($this->order->sub_total);
+        $apiRequest->setPaidPrice($this->order->total);
         $apiRequest->setCurrency(setting('iyzico_supported_currency') ?? currency());
         $apiRequest->setBasketId($this->order->id);
         $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
@@ -102,7 +101,6 @@ class Iyzico implements GatewayInterface
         $apiRequest->setShippingAddress($shippingAddress);
         $apiRequest->setBillingAddress($billingAddress);
         $apiRequest->setBasketItems($basketItems);
-
 
         return $apiRequest;
     }
@@ -122,15 +120,16 @@ class Iyzico implements GatewayInterface
     {
         $buyer = new Buyer();
 
-        $buyer->setId("BY789");
-        $buyer->setName("John");
-        $buyer->setSurname("Doe");
-        $buyer->setGsmNumber("+905350000000");
-        $buyer->setEmail("email@email.com");
-        $buyer->setIdentityNumber("74300864791");
-        $buyer->setCity("Istanbul");
-        $buyer->setCountry("Turkey");
-        $buyer->setZipCode("34732");
+        $buyer->setId($this->order->customer_id);
+        $buyer->setName($this->order->customer_first_name);
+        $buyer->setSurname($this->order->customer_last_name);
+        $buyer->setGsmNumber($this->order->customer_phone);
+        $buyer->setEmail($this->order->customer_email);
+        $buyer->setIdentityNumber(uniqid('iyzico_'));
+        $buyer->setRegistrationAddress($this->order->billing_address_1 . ', ' . $this->order->billing_address_2);
+        $buyer->setCity($this->order->billing_city);
+        $buyer->setCountry($this->order->billing_country);
+        $buyer->setZipCode($this->order->billing_zip);
 
         return $buyer;
     }
@@ -140,11 +139,11 @@ class Iyzico implements GatewayInterface
     {
         $billingAddress = new Address();
 
-        $billingAddress->setContactName("Jane Doe");
-        $billingAddress->setCity("Istanbul");
-        $billingAddress->setCountry("Turkey");
-        $billingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
-        $billingAddress->setZipCode("34742");
+        $billingAddress->setContactName($this->order->billing_first_name . ' ' . $this->order->billing_last_name);
+        $billingAddress->setCity($this->order->billing_city);
+        $billingAddress->setCountry($this->order->billing_country);
+        $billingAddress->setAddress($this->order->billing_address_1 . ', ' . $this->order->billing_address_2);
+        $billingAddress->setZipCode($this->order->billing_zip);
 
         return $billingAddress;
     }
@@ -154,11 +153,11 @@ class Iyzico implements GatewayInterface
     {
         $shippingAddress = new Address();
 
-        $shippingAddress->setContactName("Jane Doe");
-        $shippingAddress->setCity("Istanbul");
-        $shippingAddress->setCountry("Turkey");
-        $shippingAddress->setAddress("Nidakule Göztepe, Merdivenköy Mah. Bora Sok. No:1");
-        $shippingAddress->setZipCode("34742");
+        $shippingAddress->setContactName($this->order->shipping_first_name . ' ' . $this->order->shipping_last_name);
+        $shippingAddress->setCity($this->order->billing_city);
+        $shippingAddress->setCountry($this->order->billing_country);
+        $shippingAddress->setAddress($this->order->billing_address_1 . ', ' . $this->order->billing_address_2);
+        $shippingAddress->setZipCode($this->order->billing_zip);
 
         return $shippingAddress;
     }
@@ -182,6 +181,7 @@ class Iyzico implements GatewayInterface
 
         $basketItem->setId($orderProduct->id);
         $basketItem->setName($orderProduct->product->name);
+        $basketItem->setCategory1($orderProduct->product->categories->count() ? implode(',', $orderProduct->product->categories) : 'Uncategorized');
         $basketItem->setItemType($orderProduct->product->is_virtual ? BasketItemType::VIRTUAL : BasketItemType::PHYSICAL);
         $basketItem->setPrice((float)$orderProduct->unit_price->convertToCurrentCurrency()->amount());
 

@@ -10,7 +10,6 @@ use Modules\Payment\HasTransactionReference;
 class IyzicoResponse extends GatewayResponse implements HasTransactionReference
 {
     private $order;
-
     private CheckoutFormInitialize $clientResponse;
 
 
@@ -18,7 +17,6 @@ class IyzicoResponse extends GatewayResponse implements HasTransactionReference
     {
         $this->order = $order;
         $this->clientResponse = $clientResponse;
-        dd($clientResponse);
     }
 
 

@@ -154,7 +154,7 @@ return [
     'iyzico_description' => 'Description',
     'iyzico_test_mode' => 'Sandbox',
     'iyzico_api_key' => 'API Key',
-    'iyzico_api_secret' => 'API Key',
+    'iyzico_api_secret' => 'API Secret',
 
     'cod_enabled' => 'Status',
     'translatable.cod_label' => 'Label',
