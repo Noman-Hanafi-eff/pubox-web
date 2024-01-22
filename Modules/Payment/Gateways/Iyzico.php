@@ -115,6 +115,7 @@ class Iyzico implements GatewayInterface
         $apiRequest->setCallbackUrl(
             $this->getRedirectUrl($this->order, 'ref' . time())
         );
+        $apiRequest->setForceThreeDS(true);
         $apiRequest->setBuyer($buyer);
         $apiRequest->setShippingAddress($shippingAddress);
         $apiRequest->setBillingAddress($billingAddress);
