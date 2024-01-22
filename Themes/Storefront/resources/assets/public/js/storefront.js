@@ -117,8 +117,38 @@ $(() => {
     /*      navigation
     /*----------------------------------------*/
 
-    $(".category-nav-inner").on("click", () => {
-        $(".category-dropdown-wrap").toggleClass("show");
+    let moreCategories = $(".more-categories"),
+        categoryDropdown = $(".category-dropdown"),
+        categoryNavInner = $(".category-nav-inner"),
+        categoryDropdownWrap = $(".category-dropdown-wrap"),
+        verticalMegaMenuList = $(".vertical-megamenu > li");
+
+    categoryNavInner.on("click", () => {
+        categoryDropdownWrap.toggleClass("show");
+    });
+
+    _window.on("load resize", () => {
+        let verticalMegaMenuListHeight = 0,
+            homeSliderHeight = homeSlider.height(),
+            categoryDropdownHeight = homeSliderHeight;
+
+        categoryDropdown.css("height", `${categoryDropdownHeight}px`);
+
+        verticalMegaMenuList.each(function () {
+            let self = $(this);
+
+            verticalMegaMenuListHeight += self.height();
+
+            if (verticalMegaMenuListHeight + 78 > categoryDropdownHeight) {
+                self.addClass("hide");
+                moreCategories.removeClass("hide");
+
+                return;
+            }
+
+            self.removeClass("hide");
+            moreCategories.addClass("hide");
+        });
     });
 
     /*      sidebar menu
@@ -219,6 +249,38 @@ $(() => {
     sidebarMenuSubMenuLink.on("click", (e) => {
         e.stopPropagation();
     });
+
+    /*      slider
+    /*----------------------------------------*/
+
+    const homeSlider = $(".home-slider");
+
+    if (homeSlider.length !== 0) {
+        const { speed, autoplay, autoplaySpeed, fade, dots, arrows } =
+            homeSlider.data();
+
+        homeSlider
+            .slick({
+                rows: 0,
+                rtl: window.FleetCart.rtl,
+                cssEase: fade ? "cubic-bezier(0.7, 0, 0.3, 1)" : "ease",
+                speed,
+                autoplay,
+                autoplaySpeed,
+                fade,
+                dots,
+                arrows,
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            dots: false,
+                        },
+                    },
+                ],
+            })
+            .slickAnimation();
+    }
 
     /*      sidebar filter
     /*----------------------------------------*/

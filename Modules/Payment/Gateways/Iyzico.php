@@ -115,7 +115,7 @@ class Iyzico implements GatewayInterface
         $apiRequest->setCallbackUrl(
             $this->getRedirectUrl($this->order, 'ref' . time())
         );
-        $apiRequest->setForceThreeDS(true);
+        $apiRequest->setForceThreeDS(1);
         $apiRequest->setBuyer($buyer);
         $apiRequest->setShippingAddress($shippingAddress);
         $apiRequest->setBillingAddress($billingAddress);
@@ -201,8 +201,8 @@ class Iyzico implements GatewayInterface
         $basketItem->setId($orderProduct->product->id);
         $basketItem->setName($orderProduct->product->name);
         $basketItem->setCategory1(
-            $orderProduct->product->categories->count()
-                ? implode(',', $orderProduct->product->categories)
+            $orderProduct->product->categories->isNotEmpty()
+                ? implode(',', $orderProduct->product->categories->pluck('name')->toArray())
                 : 'Uncategorized'
         );
         $basketItem->setItemType(
