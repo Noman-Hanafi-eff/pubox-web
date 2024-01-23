@@ -8,6 +8,7 @@ use Iyzipay\Model\Buyer;
 use Iyzipay\Model\Locale;
 use Iyzipay\Model\Address;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Unique;
 use Iyzipay\Model\BasketItem;
 use Iyzipay\Model\PaymentGroup;
 use Modules\Order\Entities\Order;
@@ -54,6 +55,10 @@ class Iyzico implements GatewayInterface
 
         $response = CheckoutFormInitialize::create($apiRequest, $apiOptions);
 
+        if($response->getPaymentPageUrl() == null) {
+            throw new Exception(trans('core::messages.something_went_wrong'));
+        }
+
         return new IyzicoResponse($order, $response);
     }
 
@@ -93,6 +98,7 @@ class Iyzico implements GatewayInterface
 
     private function prepareApiRequest(): CreateCheckoutFormInitializeRequest
     {
+        $reference = time();
         $apiRequest = new CreateCheckoutFormInitializeRequest();
 
         $buyer = $this->prepareBuyer();
@@ -113,7 +119,7 @@ class Iyzico implements GatewayInterface
         $apiRequest->setPaymentGroup(PaymentGroup::PRODUCT);
         $apiRequest->setEnabledInstallments(['1']);
         $apiRequest->setCallbackUrl(
-            $this->getRedirectUrl($this->order, 'ref' . time())
+            $this->getRedirectUrl($this->order, $reference)
         );
         $apiRequest->setForceThreeDS(1);
         $apiRequest->setBuyer($buyer);
@@ -139,7 +145,7 @@ class Iyzico implements GatewayInterface
     {
         $buyer = new Buyer();
 
-        $buyer->setId($this->order->customer_id);
+        $buyer->setId($this->order->customer_id ?? uniqid('guest_'));
         $buyer->setName($this->order->customer_first_name);
         $buyer->setSurname($this->order->customer_last_name);
         $buyer->setGsmNumber($this->order->customer_phone);
