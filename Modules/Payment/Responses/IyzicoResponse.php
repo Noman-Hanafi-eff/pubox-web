@@ -35,7 +35,7 @@ class IyzicoResponse extends GatewayResponse implements HasTransactionReference
     {
         return [
             'orderId' => $this->getOrderId(),
-            'checkoutFormContent' => $this->clientResponse->getCheckoutFormContent(),
+            'redirectUrl' => $this->clientResponse->getPaymentPageUrl(),
         ];
     }
 }

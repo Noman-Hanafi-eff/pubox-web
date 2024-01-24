@@ -21,6 +21,37 @@ class CheckoutCompleteController
      */
     public function store($orderId, OrderService $orderService)
     {
+        if(request()->query('paymentMethod')==='iyzico'){
+
+            try{
+                $request = new \Iyzipay\Request\RetrieveCheckoutFormRequest();
+                $request->setLocale(
+                    locale() === 'tr'
+                        ? \Iyzipay\Model\Locale::TR
+                        : \Iyzipay\Model\Locale::EN
+                );
+                $request->setConversationId(request()->query('reference'));
+                $request->setToken($_POST['token']);
+
+                $options = new \Iyzipay\Options();
+                $options->setApiKey(setting('iyzico_api_key'));
+                $options->setSecretKey(setting('iyzico_api_secret'));
+                $options->setBaseUrl(
+                    setting('iyzico_test_mode')
+                        ? 'https://sandbox-api.iyzipay.com'
+                        : 'https://api.iyzipay.com'
+                );
+
+                $response = \Iyzipay\Model\CheckoutForm::retrieve($request, $options);
+
+                if($response->getPaymentStatus()!=='SUCCESS'){
+                    return redirect()->route('checkout.payment_canceled.store', ['orderId' => $orderId, 'paymentMethod' => request()->query('paymentMethod')]);
+                }
+            }catch(Exception $e){
+                return redirect()->route('checkout.payment_canceled.store', ['orderId' => $orderId, 'paymentMethod' => request()->query('paymentMethod')]);
+            }
+        }
+
         $order = Order::findOrFail($orderId);
 
         $gateway = Gateway::get(request('paymentMethod'));
