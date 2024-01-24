@@ -436,8 +436,6 @@ export default {
                         this.confirmFlutterWavePayment(data);
                     } else if (this.form.payment_method === "mercadopago") {
                         this.confirmMercadoPagoPayment(data);
-                    } else if (this.form.payment_method === "iyzico") {
-                        this.confirmIyzicoPayment(data);
                     } else {
                         this.confirmOrder(
                             data.orderId,
@@ -755,31 +753,6 @@ export default {
                 },
                 autoOpen: true,
             });
-        },
-
-        confirmIyzicoPayment({ orderId, checkoutFormContent }) {
-            this.placingOrder = false;
-            this.deleteOrderOnCloseIyzicoPopup(orderId);
-
-            if (checkoutFormContent === null) {
-                this.$notify(
-                    this.$trans("core::messages.something_went_wrong")
-                );
-
-                return;
-            }
-
-            $("body").append(checkoutFormContent);
-        },
-
-        deleteOrderOnCloseIyzicoPopup(orderId) {
-            $(document)
-                .off("click", ".css-48y2rb-Close-Close")
-                .on("click", ".css-48y2rb-Close-Close", () => {
-                    this.deleteOrder(orderId);
-
-                    iyziInit = undefined;
-                });
         },
     },
 };
